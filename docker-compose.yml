@@ -1,0 +1,25 @@
+services:
+  app:
+    image: intern-nginx
+    container_name: app-container
+    environment:
+      - NGINX_PORT=80
+    networks:
+      - app-network
+
+  proxy:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./proxy.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
