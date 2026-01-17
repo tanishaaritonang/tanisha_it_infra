@@ -41,15 +41,34 @@ A simple and safe deployment strategy includes:
 ---
 
 ## Rollback Strategy
-If a deployment fails, a rollback should be performed quickly:
+If a deployment fails, a rollback should be performed quickly using versioned Docker images:
 
-- Stop the faulty container
-- Redeploy the previous stable Docker image
-- Restart services using Docker Compose
+- Tag each release with a unique version (e.g., `intern-nginx:v1.0.0`)
+- Maintain a registry of previous stable versions
+- To rollback, redeploy with the previous stable image version
 - Verify application health after rollback
 
 Rollback example:
 ```bash
+# Stop current deployment
 docker compose down
+
+# Pull the previous stable version
+docker pull intern-nginx:v1.0.0
+
+# Update docker-compose.yml to use the stable version
+# Or use environment variable to specify the image tag
+
+# Start the previous stable version
 docker compose up -d
+
+# Verify health
+curl -f http://localhost:${HOST_PORT}
+```
+
+### Image Versioning Best Practices
+- Use semantic versioning (e.g., v1.0.0, v1.1.0)
+- Tag images with git commit hashes for traceability
+- Maintain a changelog for each version
+- Store images in a secure container registry
 
