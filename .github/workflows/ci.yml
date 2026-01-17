@@ -24,8 +24,8 @@ jobs:
       - name: Run container for testing
         run: |
           docker run -d \
-            -e NGINX_PORT=${CONTAINER_PORT} \
-            -p ${HOST_PORT}:${CONTAINER_PORT} \
+            -e NGINX_PORT=${{ secrets.HOST_PORT }} \
+            -p ${{ secrets.HOST_PORT }}:${{ secrets.CONTAINER_PORT }} \
             --name ci-test \
             intern-nginx-ci
 
