@@ -17,31 +17,62 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      - name: Start services with docker-compose
         run: |
-          docker build -t intern-nginx-ci .
+          docker compose up -d --build
 
-      - name: Run container for testing
+          # Wait a moment for services to start
+          sleep 10
+
+          # Check that both services are running
+          echo "Checking if services are running..."
+          docker compose ps
+
+      - name: Wait for services to be ready
         run: |
-          docker run -d \
-            -e NGINX_PORT=${{ secrets.HOST_PORT }} \
-            -p ${{ secrets.HOST_PORT }}:${{ secrets.CONTAINER_PORT }} \
-            --name ci-test \
-            intern-nginx-ci
+          # Wait for the app service health check to pass
+          MAX_ATTEMPTS=30
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            if docker compose exec app curl -f http://localhost > /dev/null 2>&1; then
+              echo "App service is responding"
+              break
+            else
+              echo "Attempt $ATTEMPT: App service not ready, waiting..."
+              sleep 5
+              ATTEMPT=$((ATTEMPT+1))
+            fi
+          done
 
+          if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+            echo "App service failed to become ready"
+            docker compose logs app
+            exit 1
+          fi
 
-      - name: Debug container status
+          # Check proxy service logs to ensure it started without errors
+          echo "Checking proxy service logs..."
+          docker compose logs proxy
+
+      - name: Health check for proxy service
+        run: |
+          # Wait a bit more for the proxy to be ready
+          sleep 10
+
+          # Check if the proxy service is forwarding requests to the app
+          curl -f http://localhost:8080
+
+      - name: Debug - Show container status and logs
+        if: always()
         run: |
           docker ps -a
-          docker logs ci-test || true
-
-      - name: Health check
-        run: |
-          curl -f http://localhost:8080
+          echo "=== App logs ==="
+          docker compose logs app
+          echo "=== Proxy logs ==="
+          docker compose logs proxy
 
       - name: Cleanup
         if: always()
         run: |
-          docker stop ci-test || true
-          docker rm ci-test || true
+          docker compose down -v
 
