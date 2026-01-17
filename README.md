@@ -49,7 +49,6 @@ This project demonstrates a containerized application deployment using Docker, D
 ├── .env                    # Environment variables configuration
 ├── proxy.conf              # Nginx reverse proxy configuration template
 ├── nginx.conf.template     # Nginx app service configuration template
-├── ci-cd-pipeline.sh       # CI/CD automation script
 ├── deployment-safety.md    # Deployment safety guidelines
 ├── cicd-notes.md           # CI/CD concept documentation
 ├── install-notes.md        # Environment preparation guide
@@ -71,8 +70,8 @@ The application will be available at `http://localhost:8080` (configurable via `
 - `HOST_PORT`: External port exposed to host (default: 8080)
 - `NGINX_PORT`: Internal port for nginx services (default: 80)
 - `APP_PORT`: Internal port for app service (default: 80)
-- `APP_ENV`: Environment type (default: development)
-- `IMAGE_TAG`: Docker image tag (default: latest)
+
+
 
 ## Security & Best Practices
 - App service is not directly accessible from host
